@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<meta name="format-detection" content="telephone=no">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Levenshtein distance (edit distance)</title>
+  <style type="text/css">
+  <!--
+  * { font-family: monospace; }
+  -->
+  </style>
+	<script type="text/javascript" charset="utf-8">
+	
+// レーベンシュタイン距離を計算する
+function levenshteinDistance(str1, str2) {
+  let len1 = str1.length;
+  let len2 = str2.length;
+  
+  // len1 x len2 の 二次元配列を用意して初期化 
+  let dp = new Array(len1+1);
+  for (let i=0; i<=len1; i++) {
+    dp[i] = new Array(len2+1).fill(0);
+  }
+
+  /*
+      s t r 1
+    0 1 2 3 4
+  s 1 * * * *
+  t 2 * * * *
+  r 3 * * * *
+  2 4 * * * *
+  */
+
+  // 空文字からの「距離」をセット
+  for (let i=0; i<=len1; i++) {
+    dp[i][0] = i;
+  }
+  for (let i=0; i<=len2; i++) {
+    dp[0][i] = i;
+  }
+ 
+  // 距離を計算
+  let cost = 0;
+  for (let i=1; i<=len1; i++) {
+    for (let j=1; j<=len2; j++) {
+      cost = str1[i-1] == str2[j-1] ? 0 : 1;
+
+      dp[i][j] = Math.min(
+        dp[i-1][j]+1,       // insertion
+        dp[i][j-1]+1,       // deletion
+        dp[i-1][j-1]+cost   // replacement
+      )
+    }
+  }
+
+  // 配列の最後の数字がレーベンシュタイン距離になる
+  if (dp[len1][len2] > 99) {
+    return dp[len1][len2];
+  } else {
+    return ('0'+dp[len1][len2]).slice(-2);
+  }
+}
+
+
+function to123ABC(str) {
+  var alphabet="_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var result="";
+  var myList=str.split(/\s+/);
+  for (i in myList) {
+    if (myList[i].match(/^(1[0-9]|2[0-6]|0?[1-9])$/)) {
+      result+=alphabet[parseInt(myList[i]).toString(10)];
+    } else {
+      result+="∎";
+    }
+  }
+  return result;
+}
+
+function to012ABC(str) {
+  var alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var result="";
+  var myList=str.split(/\s+/);
+  for (i in myList) {
+    if (myList[i].match(/^(1[0-9]|2[0-5]|0?[0-9])$/)) {
+      result+=alphabet[parseInt(myList[i]).toString(10)];
+    } else {
+      result+="∎";
+    }
+  }
+  return result;
+}
+
+
+// -------------------------------------------------------
+
+
+function main(str) {
+  var result = [];
+  var result2 = [];
+  var targetElm = document.getElementById('resultString');
+  var last = document.getElementById('last').checked;
+  var tmp = str.split(/\s+/g);
+
+  for (let j=0; j<=tmp.length; j++) {
+    let rslt = "";
+    if (j==0) {
+      rslt = levenshteinDistance('',tmp[j]);
+      result.push(rslt+": "+"' ', "+tmp[j]);
+      result2.push(rslt)
+    } else if (j < tmp.length) {
+      rslt = levenshteinDistance(tmp[j-1],tmp[j]);
+      result.push(rslt+": "+tmp[j-1]+", "+tmp[j]);
+      result2.push(rslt)
+    } else if(last && j == tmp.length) {
+      rslt = levenshteinDistance(tmp[j-1],'');
+      result.push(rslt+": "+tmp[j-1]+", ' '");
+      result2.push(rslt)
+    }
+  }
+  
+  targetElm.value=result.join("\n");
+  targetElm.value+="\n";
+  targetElm.value+="\n*** Result ***";
+  targetElm.value+="\n"+result2.join(" ");
+  targetElm.value+="\n";
+  targetElm.value+="\n***Result to to123ABC ***"
+  targetElm.value+="\n"+to123ABC(result2.join(" "));
+  targetElm.value+="\n";
+  targetElm.value+="\n***Result to to012ABC ***"
+  targetElm.value+="\n"+to012ABC(result2.join(" "));
+  targetElm.value+="\n";
+
+}
+
+  
+	</script>
+</head>
+<body>
+	<h1>Levenshtein distance (edit distance)</h1>
+	<div>
+	  <h3>enter text</h3>
+	  <input type="text" id="inputBin" value="" style="width: 90%" onchange="main(this.value)" onautofocus>
+	  <input type="button" value="exchange" onClick="main(document.getElementById('inputBin').value)">
+    <input type="checkbox" id="last" onClick="main(document.getElementById('inputBin').value)"><label for="last">Use last blank</label>
+	</div>
+	<div>
+    <h3>result strings</h3>
+    <textarea id="resultString" style="width: 90%" rows=30 style="font-family: monospace; font-size: 100%" readonly></textarea><br>
+    <span style="font-size: 70%">
+    </span>
+	</div>
+</body>
+</html>
+
